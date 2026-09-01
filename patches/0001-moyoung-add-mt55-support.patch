@@ -1,6 +1,6 @@
-From d263a468125d2ba2b74e83e6a8d88f06a7b7d853 Mon Sep 17 00:00:00 2001
-From: fluffygp <62457001+oddballza@users.noreply.github.com>
-Date: Tue, 1 Sep 2026 19:47:58 +0200
+From d28c93c5391c19c915606246260bb60989a89059 Mon Sep 17 00:00:00 2001
+From: oddballza <62457001+oddballza@users.noreply.github.com>
+Date: Tue, 1 Sep 2026 20:03:27 +0200
 Subject: [PATCH] Moyoung: add MT55 support
 
 MT55 is a MOYOUNG-V2 watch (manufacturer string 'MOYOUNG-V2', software
