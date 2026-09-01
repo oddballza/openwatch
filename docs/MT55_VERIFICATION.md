@@ -187,3 +187,24 @@ Deliberately excluded from this PR (kept for separate work):
 * Watchface layout/upload protocol (decompilation-derived — not clean-room).
 * DND on/off parse bug (shared code — needs maintainer discussion).
 * Latent capabilities: cycle tracking, dominant-hand, steps-category.
+
+## Battery charging encoding (clean-room finding, 2026-09-01)
+
+Investigated open issue #5236 ("battery misreported while charging") with MT55.
+Standard Battery Level `0x2A19`, own-device reads:
+
+| State | Raw | Level |
+|---|---|---|
+| Not charging | `0x2d`=45, `0x3c`=60 | 45%, 60% |
+| Charging | `0x92`=146, `0x93`=147 (rising) | 46%, 47% **+100 offset** |
+
+**Finding:** MT55 encodes charging by **adding 100** to the battery byte
+(raw >100 = charging; actual level = raw − 100; ≤100 = not charging). GB shows the
+raw >100 value and always sets `BATTERY_NORMAL` (Moyoung protocol has no charging
+flag; `handleBatteryInfo` doesn't derive one).
+
+Distinct from the issue's Colmi V72 (flat 100% while charging) → behaviour is
+firmware-specific. Posted as a data point + possible fix (treat >100 as charging,
+subtract 100) on issue #5236:
+https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/5236 — deferred to
+maintainers since it varies by firmware.
