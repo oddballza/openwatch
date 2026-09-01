@@ -15,6 +15,20 @@ and `MT55` matches **0 of 412** patterns in the codebase.
 **Recommendation: use Gadgetbridge and contribute a ~40-line `MT55Coordinator`
 upstream.** Full reasoning in [`docs/ARCHITECTURE_DECISION.md`](docs/ARCHITECTURE_DECISION.md).
 
+## Upstream contribution status
+
+The recommendation was carried out. MT55 support was built, hardware-tested, and
+submitted to Gadgetbridge:
+
+- **[PR #6688](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6688)** —
+  `MT55Coordinator` (verified-only capabilities). Open, maintainer-triaged
+  (`device moyoung`, `new device`); review round 1 addressed (changelog hunk removed).
+- **[Issue #6689](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/6689)** —
+  clean-room bug report for a shared-code DND on/off parse error. Open, triaged.
+
+Full hardware-test results and the contribution trail are in
+[`docs/MT55_VERIFICATION.md`](docs/MT55_VERIFICATION.md).
+
 ## Documents
 
 | Document | Contents |

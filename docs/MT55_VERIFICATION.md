@@ -157,6 +157,20 @@ These are clean-room discoveries (own-device probing, no decompilation). They ar
 None change the **verified-only** coordinator's capability flags — they are
 settings/features, not the supportsX flags. Recorded for follow-up.
 
+## Upstream contribution status (2026-09-01)
+
+**PR #6688 — MT55 coordinator:** https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6688
+Open; triaged by maintainers (labels: `device moyoung`, `new device`).
+Review round 1 (joserebelo): "do not modify changelog_master.xml" — addressed by
+removing the changelog hunk and force-pushing. PR now touches only
+`MT55Coordinator.java`, `DeviceType.java`, `strings.xml`. Still mergeable.
+
+**Issue #6689 — DND on/off parse bug:** https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/6689
+Open; triaged by joserebelo (label: `device moyoung`). Clean-room bug report;
+fix deferred to maintainers (shared code); offered to test on MT55.
+
+---
+
 ## Upstream contribution submitted (2026-09-01)
 
 Pushed the **verified-only** MT55 coordinator to the fork
