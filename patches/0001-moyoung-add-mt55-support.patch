@@ -1,0 +1,171 @@
+From d263a468125d2ba2b74e83e6a8d88f06a7b7d853 Mon Sep 17 00:00:00 2001
+From: fluffygp <62457001+oddballza@users.noreply.github.com>
+Date: Tue, 1 Sep 2026 19:47:58 +0200
+Subject: [PATCH] Moyoung: add MT55 support
+
+MT55 is a MOYOUNG-V2 watch (manufacturer string 'MOYOUNG-V2', software
+'MOY-JSB2-2.0.4'). Confirmed over GATT: advertises service 0xFEEA with
+FEE1/FEE2/FEE3/FEE5/FEE6 present; battery and the 9-byte FEE1 pedometer
+payload both decode correctly.
+
+ECG characteristics (FEE7/FEE8) are absent, as is Model Number (0x2A24).
+---
+ .../devices/moyoung/MT55Coordinator.java      | 112 ++++++++++++++++++
+ .../gadgetbridge/model/DeviceType.java        |   2 +
+ app/src/main/res/values/strings.xml           |   1 +
+ 3 files changed, 115 insertions(+)
+ create mode 100644 app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/moyoung/MT55Coordinator.java
+
+diff --git a/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/moyoung/MT55Coordinator.java b/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/moyoung/MT55Coordinator.java
+new file mode 100644
+index 0000000..a391ca9
+--- /dev/null
++++ b/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/moyoung/MT55Coordinator.java
+@@ -0,0 +1,112 @@
++/*  Copyright (C) 2026 OpenWatch contributors
++
++    This file is part of Gadgetbridge.
++
++    Gadgetbridge is free software: you can redistribute it and/or modify
++    it under the terms of the GNU Affero General Public License as published
++    by the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    Gadgetbridge is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU Affero General Public License for more details.
++
++    You should have received a copy of the GNU Affero General Public License
++    along with this program.  If not, see <https://www.gnu.org/licenses/>. */
++package nodomain.freeyourgadget.gadgetbridge.devices.moyoung;
++
++import androidx.annotation.DrawableRes;
++import androidx.annotation.NonNull;
++
++import java.util.regex.Pattern;
++
++import nodomain.freeyourgadget.gadgetbridge.R;
++import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
++
++/**
++ * MT55 - a MOYOUNG-V2 watch sold unbranded / under various names.
++ *
++ * Device identification confirmed over GATT:
++ *   Manufacturer (0x2A29) = "MOYOUNG-V2"   -> V2 protocol, MTU-based framing
++ *   Software rev (0x2A28) = "MOY-JSB2-2.0.4"
++ *   Firmware rev (0x2A26) = "JLQFNJEJ1.1"
++ *   Advertised service    = 0xFEEA, with FEE1/FEE2/FEE3/FEE5/FEE6 present
++ *
++ * Note: the ECG characteristics (FEE7/FEE8 of service 0xFEEA) are NOT present on
++ * this watch, and Model Number (0x2A24) is absent from the Device Information
++ * Service, so the "DFU status" probe cannot resolve.
++ */
++public class MT55Coordinator extends AbstractMoyoungDeviceCoordinator {
++    @Override
++    protected Pattern getSupportedDeviceName() {
++        return Pattern.compile("^MT55$");
++    }
++
++    @Override
++    public int getDeviceNameResource() {
++        return R.string.devicetype_mt55;
++    }
++
++    @Override
++    @DrawableRes
++    public int getDefaultIconResource() {
++        return R.drawable.ic_device_banglejs;
++    }
++
++    @Override
++    public String getManufacturer() {
++        return "Mo Young / Da Fit";
++    }
++
++    @Override
++    public int getMtu() {
++        // MOYOUNG-V2 -> MTU-based framing, as for the other V2 watches.
++        return 508;
++    }
++
++    // --- Capability flags -------------------------------------------------
++    // Verified on hardware: battery (0x2A19) and the 9-byte pedometer payload
++    // on FEE1 both decode correctly. The flags below follow the other
++    // MOYOUNG-V2 coordinators and still need per-feature confirmation on this
++    // model; see docs/MT55_VERIFICATION.md in the OpenWatch repository.
++
++    @Override
++    public int getAlarmSlotCount(GBDevice device) {
++        return 8;
++    }
++
++    @Override
++    public int getWorldClocksSlotCount() {
++        return 6;
++    }
++
++    @Override
++    public int getWorldClocksLabelLength() {
++        return 30;
++    }
++
++    @Override
++    public boolean supportsRemSleep(@NonNull GBDevice device) {
++        return true;
++    }
++
++    @Override
++    public boolean supportsStressMeasurement(@NonNull GBDevice device) {
++        return true;
++    }
++
++    // Unlike most MOYOUNG-V2 coordinators (but like L70), enable heart rate
++    // streaming and history. supportsHeartRateHistory() gates whether HR data is
++    // requested at all in FetchDataOperation, and supportsHeartRateStreaming()
++    // gates live measurement in MoyoungDeviceSupport.
++    @Override
++    public boolean supportsHeartRateStreaming() {
++        return true;
++    }
++
++    @Override
++    public boolean supportsHeartRateHistory() {
++        return true;
++    }
++}
+diff --git a/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/model/DeviceType.java b/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/model/DeviceType.java
+index cff00e8..c4c348c 100644
+--- a/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/model/DeviceType.java
++++ b/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/model/DeviceType.java
+@@ -466,6 +466,7 @@ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.ITechActive3Coordina
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.KT80Coordinator;
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.KsixVentureCoordinator;
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.L70Coordinator;
++import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.MT55Coordinator;
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.MisirunC17Coordinator;
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.P22B1Coordinator;
+ import nodomain.freeyourgadget.gadgetbridge.devices.moyoung.R50ProCoordinator;
+@@ -1168,6 +1169,7 @@ public enum DeviceType {
+     ZL02D(ZL02DCoordinator.class),
+     R50PRO(R50ProCoordinator.class),
+     RAINBUVVY_T97(RainbuvvyT97Coordinator.class),
++    MT55(MT55Coordinator.class),
+     ADVAN_WATCH_SE1_AI(AdvanWatchSE1AICoordinator.class),
+     B_AND_W_P_SERIES(BandWPSeriesDeviceCoordinator.class),
+     EARFUN_AIR_S(EarFunAirSCoordinator.class),
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index a57a033..c751f75 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -2414,6 +2414,7 @@
+     <string name="devicetype_r50pro" translatable="false">R50Pro</string>
+     <string name="devicetype_rainbuvvy_t97" translatable="false">Rainbuvvy T97</string>
+     <string name="devicetype_advan_watch_se1ai" translatable="false">Advan Watch SE1 AI</string>
++    <string name="devicetype_mt55" translatable="false">MT55</string>
+     <string name="devicetype_ultrahuma_ring_air" translatable="false">Ultrahuman Ring AIR</string>
+     <string name="devicetype_bandw_pseries" translatable="false">Bowers and Wilkins P series</string>
+     <string name="devicetype_earfun_air_s" translatable="false">EarFun Air S</string>
+-- 
+2.43.0
+
