@@ -1,4 +1,6 @@
-# DRAFT ISSUE — Moyoung: DO_NOT_DISTURB_ONOFF parse error (shared code)
+# FILED as #6689 — Moyoung: DO_NOT_DISTURB_ONOFF parse error (shared code)
+
+Filed: https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/6689
 
 File at: https://codeberg.org/Freeyourgadget/Gadgetbridge/issues  (bug template)
 
