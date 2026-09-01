@@ -156,3 +156,19 @@ These are clean-room discoveries (own-device probing, no decompilation). They ar
 
 None change the **verified-only** coordinator's capability flags — they are
 settings/features, not the supportsX flags. Recorded for follow-up.
+
+## Upstream contribution submitted (2026-09-01)
+
+Pushed the **verified-only** MT55 coordinator to the fork
+`oddballza/Gadgetbridge`, branch `mt55-support`, based on current upstream
+master. Compiles clean. PR to open at:
+https://codeberg.org/Freeyourgadget/Gadgetbridge/compare/master...oddballza:mt55-support
+
+Coordinator declares only hardware-confirmed capabilities:
+`^MT55$`, MTU 508, `supportsRemSleep`, `supportsHeartRateStreaming`.
+Dropped (unproven): stress, HR-history, alarm-slot count, world-clock count.
+
+Deliberately excluded from this PR (kept for separate work):
+* Watchface layout/upload protocol (decompilation-derived — not clean-room).
+* DND on/off parse bug (shared code — needs maintainer discussion).
+* Latent capabilities: cycle tracking, dominant-hand, steps-category.
