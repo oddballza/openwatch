@@ -130,3 +130,93 @@ because the Da Fit app is the only known implementation of the upload.
 Do not send `CMD_SET_WATCH_FACE_LAYOUT` with a guessed payload before step 1's
 round-trip is understood; a malformed layout write is the one realistic way to
 make the watch face unusable.
+
+---
+
+# Static analysis — Da Fit APK (`com.crrepa.band.dafit` 2.9.23)
+
+Decompiled with jadx 1.5.6. **Findings below are facts about the wire protocol —
+no vendor code is reproduced or reused.** See `LICENSING.md`.
+
+The vendor SDK lives under `com.crrepa.ble.*` and is only partly obfuscated.
+
+## The 9 "undocumented" trailing bytes — solved
+
+`com.crrepa.ble.conn.bean.CRPWatchFaceLayoutInfo` declares exactly the fields
+seen on the wire:
+
+```
+timePosition, timeTopContent, timeBottomContent, textColor,
+backgroundPictureMd5 (PICTURE_MD5_LENGTH = 32),
+width, height, thumWidth, thumHeight, compressionType
+```
+
+So the live capture `01d2 0118 01d2 0118 ff` decodes as:
+
+| Bytes | Field | Value |
+|---|---|---|
+| `01d2` | `width` | 466 |
+| `0118` | `height` | 280 |
+| `01d2` | `thumWidth` | 466 |
+| `0118` | `thumHeight` | 280 |
+| `ff` | `compressionType` | **255 = `ORIGINAL`** |
+
+`CompressionType` enum: `LZO(0)`, `RGB_DEDUPLICATION(1)`, `RGB_LINE(2)`,
+`BLUETRUM(3)`, `RTK_8773(4)`, `JIELI(5)`, `JIELI_707(21)`, `SIFLI(254)`,
+`ORIGINAL(255)`.
+
+**MT55 reports `ORIGINAL`** — background images are sent uncompressed. That is the
+simplest of the nine paths, and it means no LZO/vendor codec is needed.
+
+## CMD_SET_WATCH_FACE_LAYOUT (56) — write format confirmed
+
+The builder produces a payload of **exactly 37 bytes**:
+
+```
+[0]      timePosition
+[1]      timeTopContent
+[2]      timeBottomContent
+[3..4]   textColor as RGB565, BIG-endian
+[5..36]  backgroundPictureMd5 - 32 bytes, one hex digit per byte (value 0-15)
+```
+
+**The 9 read-only fields are NOT sent back.** The query *response* is 46 bytes
+(37 + 9); the *write* is 37. This fully reconciles the live capture with the
+format documented in `MoyoungConstants.java`, which is therefore **correct**.
+
+## Framing confirmed identical to Gadgetbridge
+
+The app's packet builder produces `FE EA <flag> <len> <type> <payload>`, with
+`flag = 16` when MTU is 20, else `32 + (len >> 8)`. This matches
+`MoyoungPacketOut.buildPacket()` exactly. Gadgetbridge's framing is correct.
+
+## Correction: CMD_QUERY_SUPPORT_WATCH_FACE
+
+Earlier in this document I concluded the enumeration was unavailable because
+`0x84` returned an empty payload. That was **an incomplete probe, not a device
+limitation**. The app issues `0x84` followed by four `0xB4` sub-queries with
+payloads `{0}`, `{18}`, `{16}`, `{32}`. The capability data likely arrives via
+`0xB4`. This needs re-probing before any conclusion is drawn.
+
+## Background image upload — entry point found, wire format still open
+
+The SDK exposes:
+
+```
+sendWatchFaceBackground(CRPWatchFaceBackgroundInfo, CRPFileTransListener)
+sendWatchFaceLayout(CRPWatchFaceLayoutInfo)
+queryWatchFaceScreenInfo(CRPWatchFaceScreenCallback)
+```
+
+`CRPWatchFaceBackgroundInfo` carries `bitmap`, `thumBitmap`, `CompressionType`
+and a 30-second default timeout. The implementation selects a transfer class from
+a factory keyed on compression type, hands it both bitmaps, sets the timeout and
+starts the transfer — i.e. a **separate file-transfer channel**, not a
+`CMD_*` on `FEE2`. This is consistent with the earlier hypothesis that the
+undocumented `0x190E` service (write `0x0004` / notify `0x0003`) carries bulk
+data, but that link is **not yet proven**.
+
+Remaining work: trace the `ORIGINAL` transfer implementation to recover the
+chunking, header and acknowledgement scheme, and confirm which characteristic it
+writes to. An HCI snoop of Da Fit performing one background upload remains the
+best cross-check.
