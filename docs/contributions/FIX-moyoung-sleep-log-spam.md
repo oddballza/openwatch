@@ -1,4 +1,6 @@
-# READY (local) — Fix: Moyoung sleep-overlay log spam (addresses #5859)
+# FILED as PR #6691 — Fix: Moyoung sleep-overlay log spam (addresses #5859)
+
+https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6691
 
 Branch: `fix-moyoung-sleep-log-spam` (local, based on upstream master ac67e98).
 NOT pushed to Codeberg — awaiting owner go-ahead.
