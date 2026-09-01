@@ -220,3 +220,77 @@ Remaining work: trace the `ORIGINAL` transfer implementation to recover the
 chunking, header and acknowledgement scheme, and confirm which characteristic it
 writes to. An HCI snoop of Da Fit performing one background upload remains the
 best cross-check.
+
+---
+
+# Watchface image transfer — reconstructed from static analysis
+
+Traced through the vendor SDK's transfer classes. **Not yet verified on hardware**
+— treat as a hypothesis with good evidence, not as fact.
+
+## CMD 110 (0x6E) — the transfer control command
+
+**This opcode does not exist in Gadgetbridge's `MoyoungConstants` at all.**
+
+| Packet | Meaning |
+|---|---|
+| `110` + `uint32` big-endian total length | begin transfer, announce payload size |
+| `110` + `FF FF FF FF` | abort / cancel transfer |
+
+Framed with the standard `FE EA` header, so a start looks like:
+`FE EA 20 09 6E <len32be>`.
+
+## Transfer sequence
+
+1. Bitmaps (background + thumbnail) are encoded per `CompressionType`. MT55
+   negotiates `ORIGINAL` (255) — uncompressed.
+2. App sends `110` with the total byte length.
+3. **The watch replies with its preferred package length**, and the app adopts it
+   as the chunk size. Default before negotiation is **256** bytes, or the MTU
+   where available.
+4. Chunk count is computed as `floor(total / chunkSize) + 1`.
+5. Chunks are written on a **different characteristic from the control channel** —
+   control and bulk data use separate write paths in the SDK.
+6. Progress is reported as `(chunkIndex * 100) / chunkCount`.
+7. A watchdog ticks every 1 s with a default timeout of **30 s**.
+
+## Characteristic selection
+
+The SDK picks the target characteristic from the packet type byte:
+
+| Packet type | Characteristic |
+|---|---|
+| 1 | `FEE5` (DATA_SPECIAL_1) |
+| 2 | `FEE6` (DATA_SPECIAL_2) |
+| 3 | *(unidentified)* |
+| 4 | *(unidentified)* |
+| default | `FEE2` (DATA_OUT) |
+
+Types 1 and 2 match `MoyoungDeviceSupport.getTargetCharacteristicForPacketType()`
+exactly, which is a good check that this reading is correct. **Types 3 and 4 are
+two channels Gadgetbridge does not know about** — plausible homes for the bulk
+image data, alongside the undocumented `0x190E` service.
+
+## What is still unresolved
+
+* **Which characteristic carries the bulk chunks.** The SDK resolves it through a
+  field holder populated during service discovery; mapping those fields to UUIDs
+  needs one more hop through the discovery code.
+* **The exact chunk framing** — chunks pass through a helper that pads or wraps
+  them to the negotiated size before writing.
+* Whether a completion/ack packet follows the final chunk.
+
+## Why this is not yet safe to attempt
+
+Writing a background image requires all three unknowns above to be right, and the
+layout packet then has to reference the image by MD5. A mismatch leaves the watch
+with a layout pointing at an image it does not have. Until the chunk channel and
+framing are confirmed — by an over-the-air capture, or by resolving the remaining
+static hop — **no write should be attempted**.
+
+Phone-side capture is **not available on this hardware**: ColorOS records the
+snoop log but strips it from `adb bugreport`, blocks `/data/misc/bluetooth/logs/`
+without root, and stubs the btsnoop-net socket (TCP 8872 accepts, then closes with
+zero bytes). GATT client apps (BLE Scanner, nRF Toolbox, etc.) cannot observe
+another app's connection — Android forbids it. A dedicated BLE sniffer
+(e.g. nRF52840) or a stock-Android phone remains the way to get ground truth.
