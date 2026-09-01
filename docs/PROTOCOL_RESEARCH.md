@@ -344,3 +344,71 @@ Still NOT confirmed by this probe:
 | Chunk framing (raw, MTU-mode) | From APK; not yet sent |
 | Chunk write characteristic | **Hypothesis: FEE6**; needs a real write to confirm |
 | Background image encoding (ORIGINAL) | From APK; not yet reproduced |
+
+---
+
+# Chunk test + complete upload flow (2026-09-01)
+
+Ran `tools/wf_chunk_test.py`: announce a 100000-byte transfer, write one 20-byte
+test chunk to a candidate characteristic, observe, abort. Repeated for FEE6 and
+FEE5. **User confirmed the watch never showed its "updating" icon**, i.e. it never
+entered receive mode — so nothing was written, and the earlier FEE6/FEE5
+"reaction" difference is NOT proof of the chunk channel.
+
+```
+announce(100000) -> FEE2 : RX 0xBA 01 00 28 , then 6E FF FF 00 01   (rejected)
+chunk(20) -> FEE6        : RX 0x64 (watch returns to menu)
+chunk(20) -> FEE5        : <no response>
+```
+
+## Why the blind chunk write could never work
+
+Static analysis of `sia.a(yla)` shows the transfer is **watch-driven (pull)**, not
+app-push:
+
+1. App encodes the image and sends `CMD 110` announcing the **exact encoded byte
+   length** (`i(bArrB.length)`).
+2. The watch validates the announce. On our arbitrary lengths it replied
+   `6E FF FF 00 01` — block index `0xFFFF` (-1) = **rejected**, so it never
+   entered upload mode (no "updating" icon).
+3. On acceptance, the watch sends `yla` request messages naming the block index
+   it wants; the app replies with `h(index)` -> that block's bytes to the data
+   characteristic. Progress is `(index * 100) / blockCount`.
+4. There is no app-initiated chunk push; writing chunks the watch has not
+   requested does nothing useful.
+
+## Image encoding (ORIGINAL / uncompressed) — complete
+
+`sendWatchFaceBackground` sets the compress flag **false**, so `ara.a(bitmap,
+false)` -> `qwa.f()` returns raw pixels:
+
+* **RGB565, 2 bytes per pixel** (`RGBUtils.rgb565`), row-major.
+* Total length = `width * height * 2` (`qwa.b()`).
+* `f()` returns the RLE encoding only if it is smaller AND compression was
+  requested; for ORIGINAL it is always the raw buffer.
+* For MT55's reported layout dimensions (466 x 280) a full frame is
+  466*280*2 = **260,960 bytes** — the announce length the watch expects, versus
+  the arbitrary values we sent. This is the most likely reason for rejection.
+
+## Complete upload sequence (reconstructed, NOT yet performed)
+
+```
+1. (precondition) enter custom-watchface context / send layout referencing new MD5
+2. encode bitmap -> raw RGB565, length L = w*h*2
+3. TX FEE2: CMD 110 + uint32(L)        announce
+4. RX FEE3: watch accepts, requests block indices via yla messages
+5. for each requested index i: TX <data char>: raw bytes [i*pkg : i*pkg+pkg]
+6. watch shows "updating", reports progress, writes on completion
+7. TX FEE2: CMD 56 layout (37 bytes) referencing the new image MD5
+```
+
+Steps 1 and the exact `yla` request format are the remaining unknowns. A real
+attempt requires a correctly-sized, correctly-encoded 260,960-byte image and
+handling the watch's block requests — i.e. a genuine upload, which risks the
+watchface if interrupted mid-write. Not attempted.
+
+## Watch state
+
+Unharmed throughout. Displayed face restored to its original index (9); layout
+MD5 unchanged. All tests used oversized announces + aborts so no transfer could
+complete.
