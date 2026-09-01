@@ -132,3 +132,27 @@ etc. read from Health Connect. Only data types MT55 produces will flow. GB feeds
 Health Connect via local IPC — no INTERNET permission needed (the build only holds
 the custom `internethelper.INTERNET` permission; weather would need the Internet
 Helper app).
+
+## Latent-capability sweep (read-only QUERY probe, 2026-09-01)
+
+Swept the `CMD_QUERY_*` opcodes Gadgetbridge does not currently expose, using
+`tools/moyoung_probe.py` (read-only; QUERY commands only). Responses on FEE3:
+
+| Opcode | Feature | Result |
+|---|---|---|
+| 36 DOMINANT_HAND | `24 01` (value 1) | **Supported** — GB has this setting commented out in AbstractMoyoungDeviceCoordinator |
+| 89 STEPS_CATEGORY | 54-byte data packet | **Supported** — not exposed by GB |
+| 0xA4 POWER_SAVING | `a4 00 01` | **Supported** |
+| 0x85 PSYCHOLOGICAL_PERIOD | 20-byte data packet | **Supported — women's cycle tracking**, listed "unsupported" on gadgetbridge.org |
+| 0x88 BREATHING_LIGHT | echo, empty payload | Ambiguous (ack, no data) |
+| 0x84 SUPPORT_WATCH_FACE | echo, empty | No face count (consistent w/ earlier) |
+| 52, 58, 37, 55 | none | No response → unsupported / no data |
+
+These are clean-room discoveries (own-device probing, no decompilation). They are
+**potential future contributions**, distinct from the MT55 coordinator PR:
+* DOMINANT_HAND — GB already defines the setting (commented out); MT55 answers it.
+* Cycle tracking / STEPS_CATEGORY — not implemented in GB at all; would need new
+  data models and maintainer discussion (cycle tracking is a large feature).
+
+None change the **verified-only** coordinator's capability flags — they are
+settings/features, not the supportsX flags. Recorded for follow-up.
