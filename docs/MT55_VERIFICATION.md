@@ -49,3 +49,32 @@ The core capabilities are verified. Before submitting upstream, either verify th
 HR flags with a live measurement or trim them to the `AbstractMoyoungDeviceCoordinator`
 defaults, so the contribution claims nothing unproven. Add the system-pairing
 known issue to the device notes.
+
+## Full dashboard-tile audit (2026-09-01)
+
+Went through Gadgetbridge's dashboard tiles on the paired watch. Categorised:
+
+### Working / data confirmed
+* Battery, Steps (790), Distance (592 m), Total calories (42 kcal — in steps packet)
+* Sleep with stages incl. REM (9h 57m)
+* Heart rate (86 shown on card)
+* Workouts (training data decoded)
+
+### Supported, but manual / needs enabling before data appears
+* **SpO2** — inherited `supportsSpo2()==true`; it is a *manual* measurement
+  (`CMD_TRIGGER_MEASURE_BLOOD_OXYGEN`), so the tile is empty until one is taken.
+* **Blood pressure** — same pattern (manual).
+* **Stress** — `fetchStress` runs but the watch returned **no samples**; likely
+  stress monitoring is disabled on the watch (as "Whole day HR" was Off). Enable
+  on-watch, wear, re-sync to confirm before claiming.
+* **Whole-day HR** — was Off in Health settings; enable for continuous HR history.
+
+### Correctly UNSUPPORTED — Moyoung protocol / hardware limits (do not flag)
+* **Body Energy / Body Battery** — no HRV source in the protocol.
+* **HRV** — protocol carries no RR-interval data.
+* **VO2 max** — not in GB's Moyoung stack; the watch does **SpO2, not VO2max**.
+* **Active calories** — Moyoung reports total calories only (mapped
+  `activeCalories=-1`), not the active/resting split the tile needs.
+
+`supportsBodyEnergy`, `supportsVO2Max`, HRV all default false and are overridden
+only by Garmin/Xiaomi — never by Moyoung. Leaving them off is correct.
