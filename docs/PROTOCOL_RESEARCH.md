@@ -294,3 +294,53 @@ without root, and stubs the btsnoop-net socket (TCP 8872 accepts, then closes wi
 zero bytes). GATT client apps (BLE Scanner, nRF Toolbox, etc.) cannot observe
 another app's connection — Android forbids it. A dedicated BLE sniffer
 (e.g. nRF52840) or a stock-Android phone remains the way to get ground truth.
+
+---
+
+# Live handshake confirmation (2026-09-01)
+
+Ran `tools/wf_handshake_probe.py` against the watch: announce a transfer with
+`CMD 110`, observe the reply, then **abort** (`110` + `FFFFFFFF`). No image bytes
+were written, so nothing was committed.
+
+```
+TX  FEE2:  FE EA 20 09 6E 00 00 00 64      CMD 110, announce length = 100
+RX  FEE3:  FE EA 20 08 BA 01 00 28         negotiation reply, type 0xBA, payload 01 00 28
+RX  FEE3:  FE EA 20 09 6E FF FF 00 01      CMD 110 echo/status
+TX  FEE2:  FE EA 20 09 6E FF FF FF FF      abort
+RX  FEE3:  FE EA 20 05 64                  CMD 100 (weather-resend) = watch back to main menu
+```
+
+Confirmed:
+
+* **The transfer handshake is real and reachable.** The watch accepts `CMD 110`
+  on FEE2 and answers with a negotiation packet (type **0xBA / 186**, payload
+  `01 00 28`) — the package-length / screen-info reply the SDK expects before
+  chunking. `0xBA` is not in Gadgetbridge's constants.
+* **Responses arrive on FEE3** (DATA_IN), the standard notify channel.
+* **Abort is clean.** After `FFFFFFFF` the watch emitted its normal
+  weather-resend message and returned to the main menu — no lingering
+  "awaiting data" state, nothing written.
+
+Still NOT confirmed by this probe:
+
+* **The chunk write characteristic (FEE5 vs FEE6).** Chunks are writes *from* the
+  phone; the watch does not notify on the write channel, so a passive handshake
+  cannot distinguish them. Static analysis points to **FEE6** (channel 2 ->
+  `mra.k()` -> field assigned on UUID `fee6`). Confirming it requires actually
+  sending chunk data — the one destructive-capable step — so it stays a
+  well-evidenced hypothesis, not a proven fact.
+* The exact meaning of the `0xBA` payload `01 00 28` (likely `[status=01]
+  [pkglen=0x0028=40]`, but unverified).
+
+## Net state of the watchface-upload protocol
+
+| Element | Status |
+|---|---|
+| Layout query/set (CMD 56/57), 37-byte format | **Confirmed** (APK + live read) |
+| Displayed-face switch (CMD 25) | **Confirmed working on hardware** |
+| Transfer control CMD 110 (start/abort) | **Confirmed working on hardware** |
+| Negotiation reply 0xBA | Observed; payload semantics unverified |
+| Chunk framing (raw, MTU-mode) | From APK; not yet sent |
+| Chunk write characteristic | **Hypothesis: FEE6**; needs a real write to confirm |
+| Background image encoding (ORIGINAL) | From APK; not yet reproduced |
