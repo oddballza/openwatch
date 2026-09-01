@@ -1,5 +1,7 @@
 # MT55 — Raw reconnaissance evidence
 
+Identifiers are redacted (see note below).
+
 Captured 2026-09-01 on Kali Linux, BlueZ 5.72, Intel hci0 (XX:XX:XX:XX:XX:XX), HCI 4.2.
 All values below are literal tool output, reproduced by the scripts in `tools/`.
 
@@ -17,7 +19,9 @@ Device AA:BB:CC:DD:EE:FF MT55
         ServiceData[0000feea-...]: 4a 53 42 06 01 00 90   ascii = "JSB" 06 01 00 90
 ```
 
-Note: `AA:BB:CC` is not a registered IEEE OUI, yet the device declares the address
+Note: identifiers in this document are **redacted** — the real MAC is replaced by
+`AA:BB:CC:DD:EE:FF` and the serial number by `<redacted>`. The genuine address
+prefix is not a registered IEEE OUI, yet the device declares the address
 type as **public**. This is typical of low-cost ODM hardware. The address appears
 stable (identical across all scans and across connect/disconnect cycles), so it is
 usable as a persistent device key, but it must be treated as an untrusted identifier.

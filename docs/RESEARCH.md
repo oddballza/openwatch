@@ -1,7 +1,7 @@
 # OpenWatch — Phase 1 Research
 
 **Date:** 2026-09-01
-**Device under investigation:** `MT55` @ `AA:BB:CC:DD:EE:FF`
+**Device under investigation:** `MT55` (MAC redacted as `AA:BB:CC:DD:EE:FF`)
 **Status:** Reconnaissance complete. Recommendation issued. **No application code written yet — by design.**
 
 All device claims in this document are backed by literal tool output in
@@ -92,7 +92,7 @@ packet[5:] = payload
 | Property | Value | How determined |
 |---|---|---|
 | Advertised name | `MT55` | LE scan |
-| Address | `AA:BB:CC:DD:EE:FF`, declared **public** | LE scan. Not a registered OUI; stable across reconnects |
+| Address | redacted; declared **public** | LE scan. Real prefix is not a registered OUI; stable across reconnects |
 | Advertised service | `0xFEEA` | LE scan — **the Moyoung service** |
 | Service data | `4a 53 42 06 01 00 90` = `"JSB" 06 01 00 90` | LE scan; `JSB` matches the `JSB2` firmware family |
 | Manufacturer data | key `0xF0EF`, value = own MAC | LE scan |

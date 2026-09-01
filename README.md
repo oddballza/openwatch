@@ -29,7 +29,7 @@ upstream.** Full reasoning in [`docs/ARCHITECTURE_DECISION.md`](docs/ARCHITECTUR
 
 | | |
 |---|---|
-| Name / MAC | `MT55` / `AA:BB:CC:DD:EE:FF` (declared public) |
+| Name / MAC | `MT55` / MAC redacted (declared public) |
 | Manufacturer (DIS) | `MOYOUNG-V2` |
 | Software / Firmware | `MOY-JSB2-2.0.4` / `JLQFNJEJ1.1` |
 | Protocol | Moyoung V2 (MTU-based framing) |

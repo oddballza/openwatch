@@ -1,7 +1,13 @@
 import dbus, dbus.mainloop.glib, time
 from gi.repository import GLib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-bus=dbus.SystemBus(); MAC="AA:BB:CC:DD:EE:FF"; DP="/org/bluez/hci0/dev_"+MAC.replace(":","_")
+bus=dbus.SystemBus()
+import os, sys
+# Target device MAC: pass as argv[1], or set WATCH_MAC in the environment.
+MAC = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("WATCH_MAC", "")).upper()
+if not MAC:
+    sys.exit("usage: %s <MAC>   (or set WATCH_MAC)" % sys.argv[0])
+DP="/org/bluez/hci0/dev_"+MAC.replace(":","_")
 ad=dbus.Interface(bus.get_object("org.bluez","/org/bluez/hci0"),"org.bluez.Adapter1")
 def dp():
     try: return dbus.Interface(bus.get_object("org.bluez",DP),"org.freedesktop.DBus.Properties").GetAll("org.bluez.Device1")
