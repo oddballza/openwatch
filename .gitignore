@@ -4,3 +4,8 @@ __pycache__/
 /.gradle/
 /local.properties
 /captures/
+
+# Proprietary APK - never commit
+base.apk
+*.apk
+/decompiled/
