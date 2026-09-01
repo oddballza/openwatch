@@ -78,3 +78,57 @@ Went through Gadgetbridge's dashboard tiles on the paired watch. Categorised:
 
 `supportsBodyEnergy`, `supportsVO2Max`, HRV all default false and are overridden
 only by Garmin/Xiaomi — never by Moyoung. Leaving them off is correct.
+
+## "Test new function" = QuerySettingsOperation (read-only) — results
+
+The device-card overflow "Test new function" runs `MoyoungDeviceSupport.onTestNewFunction()`,
+which is `QuerySettingsOperation` — a **read-only** settings dump. Confirmed values:
+
+```
+GOAL_STEP = 8000            HR_AUTO_INTERVAL = 6        DEVICE_VERSION = INTERNATIONAL_EDITION
+DEVICE_LANGUAGE = ENGLISH   TIME_SYSTEM_24             METRIC_SYSTEM
+DISPLAY_WATCH_FACE = 9      OTHER_MESSAGE_STATE = false QUICK_VIEW = true (06:00-21:00)
+SEDENTARY_REMINDER = false  REMINDERS_TO_MOVE{60min,50 steps,10-22}
+DO_NOT_DISTURB_TIME = 21:00-06:00
+Supported languages: EN, ZH, JA, DE, FR, ES, AR, RU, UK, IT, PT, PL, DA, RO
+```
+
+(`DISPLAY_WATCH_FACE = 9` also independently confirms the earlier face restore.)
+
+## BUG FOUND: DO_NOT_DISTURB_ONOFF parse error (shared Moyoung code)
+
+```
+Parse error for DO_NOT_DISTURB_ONOFF:
+  IllegalArgumentException: Wrong data length, should be 1, was 4
+  at MoyoungSettingBool.decode(MoyoungSettingBool.java:32)
+```
+
+Root cause (in upstream shared code, not MT55-specific):
+
+* `AbstractMoyoungDeviceCoordinator` line 217-218 maps **both**
+  `DO_NOT_DISTURB_TIME` (a `MoyoungSettingTimeRange`) **and**
+  `DO_NOT_DISTURB_ONOFF` (a `MoyoungSettingBool`) to the **same** query command
+  `CMD_QUERY_DO_NOT_DISTURB_TIME` (-127).
+* That command's only response is the 4-byte time range (documented in
+  `MoyoungConstants`). The `TimeRange` decoder handles it; the `Bool` decoder
+  receives the same 4 bytes and throws (it demands exactly 1).
+* There is **no** separate DND on/off command in `MoyoungConstants` — DND state
+  appears to be defined solely by the time window.
+
+Impact: non-fatal (caught + logged), but DND on/off never reads correctly, and
+the log fills with stack traces on every settings query.
+
+**This is a candidate for a SECOND, separate contribution** — but it edits shared
+Moyoung code, so it must be raised with the maintainers (correct semantics of DND
+on/off across models) rather than patched blindly in the MT55 PR. Discovered via
+clean-room observation (own device logcat); no decompilation involved.
+
+## Google Fit / Health Connect (corrected)
+
+Health Connect (`com.google.android.apps.healthdata`), Google Fit and Fitbit are
+all installed on the test phone. GB syncs to Health Connect (steps, distance, HR,
+resting HR, sleep, SpO2, active calories, workouts, weight, +others); Google Fit
+etc. read from Health Connect. Only data types MT55 produces will flow. GB feeds
+Health Connect via local IPC — no INTERNET permission needed (the build only holds
+the custom `internethelper.INTERNET` permission; weather would need the Internet
+Helper app).
