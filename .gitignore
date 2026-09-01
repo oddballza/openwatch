@@ -1,0 +1,6 @@
+*.pyc
+__pycache__/
+/build/
+/.gradle/
+/local.properties
+/captures/
