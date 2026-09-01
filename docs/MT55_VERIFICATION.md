@@ -161,8 +161,9 @@ settings/features, not the supportsX flags. Recorded for follow-up.
 
 Pushed the **verified-only** MT55 coordinator to the fork
 `oddballza/Gadgetbridge`, branch `mt55-support`, based on current upstream
-master. Compiles clean. PR to open at:
-https://codeberg.org/Freeyourgadget/Gadgetbridge/compare/master...oddballza:mt55-support
+master. Compiles clean. Submitted as PR #6688:
+https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6688
+(Status at submission: open, CI mergeable, auto-labeled "device moyoung", 1 commit / 4 files / +85.)
 
 Coordinator declares only hardware-confirmed capabilities:
 `^MT55$`, MTU 508, `supportsRemSleep`, `supportsHeartRateStreaming`.
