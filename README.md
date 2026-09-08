@@ -17,17 +17,35 @@ upstream.** Full reasoning in [`docs/ARCHITECTURE_DECISION.md`](docs/ARCHITECTUR
 
 ## Upstream contribution status
 
-The recommendation was carried out. MT55 support was built, hardware-tested, and
-submitted to Gadgetbridge:
+The recommendation was carried out. **Three pull requests were merged into Gadgetbridge
+on 2 September 2026**, all by maintainer `joserebelo`:
 
-- **[PR #6688](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6688)** —
-  `MT55Coordinator` (verified-only capabilities). Open, maintainer-triaged
-  (`device moyoung`, `new device`); review round 1 addressed (changelog hunk removed).
+| PR | What | Diff | Merge commit |
+|---|---|---|---|
+| [#6688](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6688) | `MT55Coordinator` — new device support, verified-only capabilities | +84 / −0 | [`8305c4b7`](https://codeberg.org/Freeyourgadget/Gadgetbridge/commit/8305c4b7b0a62e9d334842a55584bfb7701e7d1b) |
+| [#6690](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6690) | Charging detected from battery level > 100 — fixes a 146% battery display. **Shared Moyoung code**, addresses [#5236](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/5236) | +10 / −3 | [`bb5fcf9d`](https://codeberg.org/Freeyourgadget/Gadgetbridge/commit/bb5fcf9d32a2) |
+| [#6691](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6691) | Sleep-overlay log spam reduced to debug — 208 warnings in ~2 min of normal use. **Shared Moyoung code**, addresses [#5859](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/5859) | +1 / −1 | [`1506767f`](https://codeberg.org/Freeyourgadget/Gadgetbridge/commit/1506767f6a70) |
+
+**MT55 is officially supported in Gadgetbridge.** Two of the three changes fix
+pre-existing defects reported by other users, in code shared by every Moyoung device.
+
+`MT55Coordinator.java` is in upstream `master` today, carrying
+`Copyright (C) 2026 oddballza` — verify at
+[`devices/moyoung/MT55Coordinator.java`](https://codeberg.org/Freeyourgadget/Gadgetbridge/src/branch/master/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/moyoung/MT55Coordinator.java).
+
+Left open by intent:
+
 - **[Issue #6689](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/6689)** —
-  clean-room bug report for a shared-code DND on/off parse error. Open, triaged.
+  clean-room report root-causing a DND on/off parse error in shared Moyoung code. Two
+  candidate fixes offered and neither chosen: deciding between them needs cross-model
+  behaviour that one device cannot establish, so it is deferred to the maintainers with
+  an offer to test whatever they choose.
+- **Issues #5236 and #5859** are referenced as *Addresses*, not *Fixes*. An issue should
+  be closed by someone who can confirm the whole of it is resolved.
 
-Full hardware-test results and the contribution trail are in
-[`docs/MT55_VERIFICATION.md`](docs/MT55_VERIFICATION.md).
+Full merge record, evidence standard and scope boundaries:
+[`docs/contributions/STATUS.md`](docs/contributions/STATUS.md).
+Hardware-test results: [`docs/MT55_VERIFICATION.md`](docs/MT55_VERIFICATION.md).
 
 ## Documents
 
