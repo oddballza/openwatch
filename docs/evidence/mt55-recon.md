@@ -2,7 +2,7 @@
 
 Identifiers are redacted (see note below).
 
-Captured 2026-09-01 on Kali Linux, BlueZ 5.72, Intel hci0 (XX:XX:XX:XX:XX:XX), HCI 4.2.
+Captured 2026-09-01 on Kali Linux, BlueZ 5.72, Intel hci0 (adapter MAC redacted), HCI 4.2.
 All values below are literal tool output, reproduced by the scripts in `tools/`.
 
 ## 1. Advertisement (pre-connection)
