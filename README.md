@@ -17,8 +17,13 @@ upstream.** Full reasoning in [`docs/ARCHITECTURE_DECISION.md`](docs/ARCHITECTUR
 
 ## Upstream contribution status
 
-The recommendation was carried out. The **first three** pull requests were merged into
-Gadgetbridge on 2 September 2026, all by maintainer `joserebelo`:
+The recommendation was carried out, and the work continued well past it. **Fourteen pull
+requests merged into Gadgetbridge as of 17 September 2026**, all by maintainer
+`joserebelo`, with three more open. That figure is a dated snapshot, not a running
+total — the authoritative list is
+[every pull request by `oddballza`](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls?state=all&poster=1443751).
+
+### The MT55 milestone — 2 September 2026
 
 | PR | What | Diff | Merge commit |
 |---|---|---|---|
@@ -29,11 +34,42 @@ Gadgetbridge on 2 September 2026, all by maintainer `joserebelo`:
 **MT55 is officially supported in Gadgetbridge.** Two of the three changes fix
 pre-existing defects reported by other users, in code shared by every Moyoung device.
 
-Contribution continued past this milestone — further Moyoung driver fixes, smart-scale
-bio-impedance storage, and dashboard widgets. The authoritative, current list is
-[every pull request by `oddballza`](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls?state=all&poster=1443751).
-No running total is restated here on purpose: a hand-maintained count drifts from the
-registry, and the registry is one click away.
+### Since then
+
+**Moyoung driver** — fixes and features in code shared by every device in the family:
+
+| PR | What |
+|---|---|
+| [#6709](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6709) | Measure blood oxygen on demand from the device card |
+| [#6710](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6710) | Read the battery level from the raw byte, so charging is detected |
+| [#6739](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6739) | Refresh the dashboard after a blood oxygen measurement |
+
+**Smart scales and body composition** — storage kept separate from derivation, so any
+scale driver can reuse both:
+
+| PR | What |
+|---|---|
+| [#6694](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6694) | Store raw bio-impedance and estimate body composition from it |
+| [#6703](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6703) | Weight chart: show BMI |
+| [#6728](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6728) | Mi scales: refresh the dashboard after a measurement |
+
+**Dashboard widgets** — including the empty and not-yet-measured states:
+
+| PR | What |
+|---|---|
+| [#6704](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6704) | Empty state for the sleep score widget |
+| [#6705](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6705) | Blood oxygen widget |
+| [#6706](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6706) | Weight widget |
+| [#6707](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6707) | Heart rate widget |
+| [#6708](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6708) | BMI widget |
+
+### Open, in review
+
+| PR | What |
+|---|---|
+| [#6695](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6695) | Support for the LeFu "Health Scale" (1byone, Veeway and other rebrands) |
+| [#6698](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6698) | Let device drivers consume passive BLE advertisements instead of holding a connection |
+| [#6726](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls/6726) | Dashboard: body fat, body water, muscle mass and BMR widgets |
 
 `MT55Coordinator.java` is in upstream `master` today, carrying
 `Copyright (C) 2026 oddballza` — verify at
