@@ -17,8 +17,8 @@ upstream.** Full reasoning in [`docs/ARCHITECTURE_DECISION.md`](docs/ARCHITECTUR
 
 ## Upstream contribution status
 
-The recommendation was carried out. **Three pull requests were merged into Gadgetbridge
-on 2 September 2026**, all by maintainer `joserebelo`:
+The recommendation was carried out. The **first three** pull requests were merged into
+Gadgetbridge on 2 September 2026, all by maintainer `joserebelo`:
 
 | PR | What | Diff | Merge commit |
 |---|---|---|---|
@@ -28,6 +28,12 @@ on 2 September 2026**, all by maintainer `joserebelo`:
 
 **MT55 is officially supported in Gadgetbridge.** Two of the three changes fix
 pre-existing defects reported by other users, in code shared by every Moyoung device.
+
+Contribution continued past this milestone — further Moyoung driver fixes, smart-scale
+bio-impedance storage, and dashboard widgets. The authoritative, current list is
+[every pull request by `oddballza`](https://codeberg.org/Freeyourgadget/Gadgetbridge/pulls?state=all&poster=1443751).
+No running total is restated here on purpose: a hand-maintained count drifts from the
+registry, and the registry is one click away.
 
 `MT55Coordinator.java` is in upstream `master` today, carrying
 `Copyright (C) 2026 oddballza` — verify at
